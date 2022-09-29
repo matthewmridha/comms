@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block head_title %}
+    {{ team.id }}
+{% endblock %}
+{% block content %}
+<div class="card1 shadow center">
+    <h3>
+        {% if team.logo %}
+        <img src="{{ team.logo.url }}" class="team_logo"> 
+        &nbsp {{ team.name }}
+        {% else %}
+        {{ team.name }}
+        {% endif %}
+        
+    </h3>
+    <div>
+        <div>
+            <div class="text-left">
+                <h5>Manager : </h5>
+            </div>
+            <div>
+                {{ team_manager.email }} 
+            </div>
+        </div>
+        <br>
+        <div class="text-left">
+            <h5>Members : </h5>
+        </div>
+        <div >
+            {% if team_members %}
+            <table class="table table-hover">
+                <tbody>
+                    {% for i in team_members %}
+                        <tr >
+                            <td>
+                                {{ i.email }} 
+                            </td>
+                            {% if is_manager %}
+                            <td>
+                                <a href="#">
+                                    Remove
+                                </a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        {% if not is_member or is_manager %}
+            <form method="post" action="{% url 'join_team' team.id %}">
+                {% csrf_token %}
+                <p>
+                    <label for="pass">Team Password:</label>
+                </p>
+                <p>
+                    <input type="text" name="team_password" id="team_password" class="form-control">
+                </p>
+                <p>
+                    <button type="submit" class="btn btn-block blue-button">Join Team</button>
+                </p>
+            </form>
+        {% elif is_member %}
+            <a href="{% url 'leave_team' team.id %}"><button class="btn btn-danger">Leave Team</button></a>
+        {% endif %}
+    </div>
+</div>
+<div class="card1 shadow center">
+    <h5>Upcoming Events</h5>
+    {% if upcoming_events %}
+        {% for i in upcoming_events %}
+                <a href="{% url 'event' i.id %}"><img src="{{i.banner.url}}" style="width:90%; height: auto"></a>
+                <div class="row">
+                    <div class="col">
+                        <h6> {{ i.title }} </h6>
+                        <p> {{ i.date }} {{ i.time }} </p>
+                        <p> {{i.location }} </p>
+                        {% if is_manager %}
+                        <p><a href="{% url 'unregister_team' i.id team.id %}"><button class="btn btn-danger">Unregister</button></a></p>
+                        {% endif %}
+                    </div>
+                </div>
+        {% endfor %}
+    {% else %}
+        No events coming up!
+    {% endif %}
+</div>
+<div class="card1 shadow center">
+    {% if passt_events %}
+        {% for i in past_events %}
+            <img src="{{i.banner.url}}" style="width:100%; height: auto">
+            <p> {{ i.title }} </p>
+            <p> {{ i.date }} {{ i.time }} </p>
+            <p> {{i.location }} </p>
+        {% endfor %}
+        {% else %}
+            No past participation!
+        {% endif %}
+</div>
+    
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block head_title %} {{ event.title }} {% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="row justify-content-center">
+    <div class="col card1">
+        {% if event.poster %}
+        <img src="{{ event.poster.url }}" class="card-img-top img img-responsive center poster" alt="{{ event.title }}">
+        {% endif %}
+        <div class="card-body" style="text-align:left">
+            <h1 class="card-title" style="text-decoration: underline;">{{ event.title }}</h1>
+            <div>
+                <div class="text-left">
+                    <p class="card-text"><b>Hosted By : </b>{% if event.manager.logo %}<img src="{{event.manager.logo.url}}" style="width:50px;"><b>{{ event.manager.name }}</b> {% else %}<b>{{ event.manager.name }}</b>{% endif %}</p>
+                    <div id="marked_content" >
+                    {% if marked %}
+                        {{ marked|safe }}
+                    {% endif %}
+                    </div>
+                    <p class="card-text"><b> Type : </b> {{ event.sport }}</p>
+                    <p class="card-text"><b> Location : </b>{% if event.location %}{{ event.location }}{% endif %}, {%if event.city %}{{ event.city }}{% endif %}</p>
+                    <p class="card-text"><b> District : </b> {{ event.state }}</p>
+                    <p class="card-text"><b> Date : </b> {{ event.date|date }}</p>
+                    <p class="card-text"><b> Time : </b> {{ event.time|time }}</p>
+                    <p class="card-text"><b> Registration Type : </b>{% if event.team_event %}Team{% else %}Individual{% endif %}</p>
+                    <p class="card-text"><b> Price : </b> {% if event.price %} &#2547; {{ event.price }}{% else %} Free {% endif %}</p>
+                    {% if event.facebook %}<p class="card-text"><a href="{{ event.facebook }}" target="_blank"><i class="fa fa-facebook-square fa-3x" aria-hidden="true"></i></a></p>{% endif %}
+                    {% if event.payment_gateway %}
+                    <p class="card-text"><b> Online Payment : </b> <a href="{{ event.payment_gateway }}"> Click here to make Payment</a></p>
+                    {% endif %}
+                    {% if event.payment_number %}
+                    <p class="card-text"><b> bKash : </b> {{ event.payment_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                {% if user.is_authenticated %}
+                <!-- TEAM EVENT -->
+                    {% if event.team_event %}
+                        <!-- LIST OF REGISTERED TEAMS -->
+                        <div>
+                            {% if teams_registered %}
+                                {% for i in teams_registered.all %}
+                                    <p>{% if i.logo %} <img src="{{ i.logo.url }}" class="team_logo"> {% endif %}{{ i.name }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <!-- SELECT AND REGISTER TEAM IF TEAM MANAGER -->
+                        {% if teams_managed %}
+                            <form action="{% url 'register_team' event.id %}" method="post">
+                                {% csrf_token %}
+                                <p>
+                                    <div class="form-group">
+                                        <label for="team_select">Team</label>
+                                        <select class="form-control" id="team_select" name="team_select">
+                                            {% for i in teams_managed %}
+                                                <option value="{{ i.pk }}">
+                                                    {{ i.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </p>
+                                <p>
+                                    <button type="submit" class="btn btn-block center yellow-button">Register Team</button>
+                                </p>
+                            </form>
+                            <p>
+                                <a href="{% url 'team_builder' %}" ><button class="btn  btn-block blue-button">Build a Team</button></a>
+                            </p>
+                            <p>
+                                <a href="{% url 'teams' %}" ><button class="btn  btn-block blue-button">Join a Team</button></a>
+                            </p>
+                        <!-- IF NOT TEAM MANAGER -->
+                        {% else %}
+                            <p> If you are a meber of an existing team, Please ask your team manager to register the team  </p>
+                            <p> OR</p>
+                            <!-- BUILD A TEAM -->
+                            <a href="{% url 'team_builder' %}" ><button class="btn btn-block blue-button">Build a team</button></a>
+                        {% endif %}
+                    {% else %}
+                    <!-- INDIVIDUAL EVENT -->
+                        <!-- UNREGISTER IF ALREADY REGUSTERED -->
+                        {% if registered == True %}
+                            <!-- CAN NOT SELF UNREGISTER IF PAID EVENT -->
+                            {% if event.payment_required %}
+                                <p><b>You have already registered to this event! Please Contact Host to Unregister</b></p>
+                            {% else %}
+                            <!-- UNREGISTER -->
+                                <p>
+                                    <div class="button-container">
+                                    <a href="{% url 'unregister' event.id %}"><button class="btn btn-danger">Unregister</button></a>
+                                    </div>
+                                </p>
+                            {% endif %}
+                        {% else %}
+                        <!-- INDIVIDUAL REGISTRATION -->
+                            <!-- PROFILE REQUIRED -->
+                            {% if profile %}
+                                <!-- REGISTRATION MUST BE OPEN -->
+                                {% if event.registration_open %}
+                                    <!-- IF THERE IS A PRICE, HOW WILL THEY PAY ? -->
+                                    {% if event.payment_required %}
+                                        <form action="{% url 'register_paid' event.id %}" method="post">
+                                            {% csrf_token %}
+                                            <lable for="select_payment_option_input">Payment Method:</lable>
+                                            <select class="form-control" id="slect_payment_option_input" name="payment_method" required>
+                                                {% for i in event.payment_methods.all %}
+                                                    <option value="{{ i.pk }}"> {{i.name}} </option>
+                                                {% endfor %}
+                                            </select>
+                                            <label for="transaction_id_input">Transaction ID:</label>
+                                            <input type="text" class="form-control" placeholder="Transaction ID" id="transaction_id_input" name="transaction_id" required>
+                                            <div class="button-container">
+                                            <button class="btn yellow-button">Register</button>
+                                            </div>
+                                        </form>
+                                    <!-- IF THERE IS NO PRICE, REGISTER -->
+                                    {% else %}
+                                        <p>
+                                            <div class="button-container">
+                                            <a href="{% url 'register' event.id %}"><button class="btn yellow-button">Register</button></a>
+                                            </div>
+                                        </p>
+                                    {% endif %}
+                                {% else %}
+                                    <h4> Registration Closed!</h4>
+                                {% endif %}
+                            {% else %}
+                                <div class="button-container">
+                                    <a href="{% url 'profileView' %}"><button class="btn btn-warning">Please Complete Your Profile First</button></a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                <!-- LOGIN REQUIRED -->
+                {% else %}
+                    <div class="button-container">
+                    <a href="{% url 'account_login' %}"><button class="btn blue-button">Login to Register</button></a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

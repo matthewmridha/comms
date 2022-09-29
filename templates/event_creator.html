@@ -1,0 +1,72 @@
+
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block head_title %} Create Event {% endblock %}
+{% block extra_head %} Event Creator {% endblock %}
+{% block content %}
+<div class="blank-canvas">
+    <h3 class="card-title" style="text-decoration: underline;">Event Creator</h3>
+    <img src="{{ host.logo.url }}" style="width: 100px;">
+    {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>{{ error|escape }}</strong>
+                        <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close">
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>{{ error|escape }}</strong>
+                    <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close">
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% if form.is_bound %}
+    <form method="post" id="event_editor_form" name="event_editor_form" enctype='multipart/form-data' action="{% url 'edit_event' id %}">
+    {% else %}
+    <form method="post" id="event_creator_form" name="event_creator_form" enctype='multipart/form-data'>
+    {% endif %}
+    {% csrf_token %}
+    {% crispy form %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script> 
+        window.addEventListener("load", function(){
+            let team_number = document.getElementById("team_number");
+            let payment_required = document.getElementById("id_payment_required");
+            let payment_methods = document.getElementById("div_id_payment_methods");
+            let payment_gateway = document.getElementById("div_id_payment_gateway");
+            let payment_number = document.getElementById("div_id_payment_number");
+            let payment_instruction = document.getElementById("id_payment_instruction");
+            team_number.style.display = "none";
+            payment_number.style.display = "none";
+            payment_methods.style.display = "none";
+            payment_gateway.style.display = "none";
+            payment_instruction.style.display = "none";
+            let team_event = document.getElementById("id_team_event")
+            team_event.addEventListener("click", function(){
+                team_event.checked ? team_number.style.display="inline-block" : team_number.style.display="none"
+            })
+            payment_required.addEventListener("click", function(){
+                payment_required.checked ? payment_methods.style.display = "block" : payment_methods.style.display = "none"
+                payment_required.checked ? payment_instruction.style.display = "block" : payment_instruction.style.display = "none"
+                let payment_type = document.getElementById("id_payment_methods")
+                payment_type.addEventListener("click", function(){
+                    if(this.value == 1){
+                        payment_number.style.display = "block";
+                        payment_gateway.style.display = "none";
+                    }else if(this.value >= 2){
+                        payment_number.style.display = "none";
+                        payment_gateway.style.display = "block";
+                    }
+                });
+            });
+        });
+    </script>
+    </form>
+</div>
+    
+{% endblock %}

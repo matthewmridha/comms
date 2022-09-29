@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block head_title %} teams {% endblock %}
+{% block content %}
+<div class="card1 center shadow">
+    <h1>Teams</h1>
+        {% if all_teams %}
+            <table class="table table-hover">
+                <thead >
+                    <tr>
+                        <th scope="col">
+
+                        </th>
+                        <th scope="col">
+                            Team
+                        </th>
+                        <th scope="col">
+                            Sport
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team in all_teams %}
+                    
+                        <tr>
+                            <td>
+                                {% if team.logo %}
+                                    <img src="{{ team.logo.url }}" class="team_logo">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'team_view' team.id %}">
+                                {% if team.name %}
+                                    {{ team.name }}
+                                {% endif %}
+                                </a>
+                            </td>
+                        <td>
+                                {% if team.sport %}
+                                    {{ team.sport }}
+                                {% endif %}
+                            </td> 
+                        </tr>
+                    
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+        {% endif %}
+    </div>
+{% endblock %}

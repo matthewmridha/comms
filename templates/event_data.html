@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% if profiles %}
+<div class="blank-canvas">
+    <h1>Event : {% if event %} {{ event.title }} {% endif %} {% if event.date %} - {{ event.date }} {% endif %}</h1>
+    <h3>Organized By : {% if event.manager %} {{ event.manager }} {% endif %}</h3>
+    <h4>Registered Users</h4>
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <td>
+                    Name 
+                </td>
+                <td>
+                    Email
+                </td>
+                <td>
+                    Phone
+                </td>
+                <td>
+                    State
+                </td>
+                <td>
+                    City
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+                <tr>
+                    <td>
+                        {{ profile.first_name }} {{ profile.last_name }}
+                    </td>
+                    <td>
+                        {{ profile.user.email }}
+                    </td>
+                    <td>
+                        {{ profile.phone }}
+                    </td>
+                    <td>
+                        {{ profile.state }}
+                    </td>
+                    <td>
+                        {{ profile.city }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'download_data' event.id %}"><button class="btn blue-button center">Download Data</button></a>
+</div>
+{% endif %}
+{% endblock %}

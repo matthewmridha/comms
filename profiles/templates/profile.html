@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; ">
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>{{ error|escape }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">                       
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>{{ error|escape }}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% if form %}
+            <div class="blank-canvas">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if user.is_authenticated %}
+                            <label>Email: </label>
+                            <p> {{user.email}} <a href="{% url 'account_email' %}">Change E-mail</a></p>
+                        {% endif %}
+                        {% crispy form %}
+                    </form>
+            </div>
+        {% elif profile %}
+        <!--  ACCORDION  -->
+        <div class="accordion-background shadow">
+            <div class="accordion accordion-flush" id="accordionFlushExample">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-headingOne">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                            Profile
+                        </button>
+                    </h2>
+                    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body">
+                            <div>
+                                <button class="btn btn-outline-info" style="margin: 10px;" onclick="toggleEditProfile()">Edit Profile</button>
+                                <div class="card-body text-left" id="profile_regular">
+                                    <p>Email : {{ profile.user.email }} <a href="{% url 'account_email' %}">Change E-mail</a></p>
+                                    <p>Name : {{ profile.first_name }} {{ profile.last_name }}</p>
+                                    <p>Gender : {{ profile.gender }} </p>
+                                    <p>Birthday : {{profile.birthday }}</p>
+                                    <p>Phone : {{profile.phone}} </p>
+                                    <p>Area : {{profile.state}} </p>
+                                    <p>City : {{profile.city}} </p>
+                                    <p>Country : {{profile.country}} </p>
+                                    <p>Sports : {% for i in profile.sport.all %} {{i.sport}} {% endfor %}</p>
+                                    <p><a href="{% url 'account_change_password' %}">Change Password</a></p>
+                                </div>
+                                <div class="card-body center text-left" id="profile_edit" style="display:none">
+                                    {% if populated_form %}
+                                    <form method="post" action="{% url 'edit_profile' %}">
+                                        {% csrf_token %}
+                                        {% if user.is_authenticated %}
+                                            <label>Email: </label>
+                                            <p> {{user.email}} <a href="{% url 'account_email' %}">Change E-mail</a></p>
+                                        {% endif %}
+                                        {% crispy populated_form %}
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                        Upcomming Events
+                        </button>
+                    </h2>
+                    <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body">
+                            <h4>Individual Events</h4>
+                            {% if upcoming_events %}
+                                {% for i in upcoming_events %}
+                                
+                                    <a href="{% url 'event' i.id %}"><img src="{{i.poster.url}}" style="width:auto; max-height: 33vw"></a>
+                                        <div class="row">
+                                            <div class="col">
+                                                <p> {{ i.title }} </p>
+                                                <p> {{ i.date }} {{ i.time }} </p>
+                                                <p> {{i.location }} </p>
+                                            </div>
+                                        </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>You are not currently registered to any event.</p>
+                            {% endif %}
+                            <h4>Team Events</h4>
+                            {% if team_events %}
+                                {% for i in team_events %}
+                                    <a href="{% url 'event' i.id %}"><img src="{{i.banner.url}}" style="width:90%; height: auto"></a>
+                                        <div class="row">
+                                            <div class="col">
+                                                <p> {{ i.title }} </p>
+                                                <p> {{ i.date }} {{ i.time }} </p>
+                                                <p> {{i.location }} </p>
+                                            </div>
+                                        </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>You are not registered to any team eventss</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                        Past Events
+                    </button>
+                    </h2>
+                    <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+                    <div class="accordion-body">
+                        {% if passt_events %}
+                            {% for i in past_events %}
+                                <img src="{{i.banner.url}}" style="width:100%; height: auto">
+                                <p> {{ i.title }} </p>
+                                <p> {{ i.date }} {{ i.time }} </p>
+                                <p> {{i.location }} </p>
+                            {% endfor %}
+                        {% else %}
+                            <p>You have not participated in any events.</p>
+                        {% endif %}
+                    </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-headingFour">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
+                    Teams
+                    </button>
+                    </h2>
+                    <div id="flush-collapseFour" class="accordion-collapse collapse" aria-labelledby="flush-headingFour" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body">
+                            {% if managed_teams %}
+                                <h4> Managed Teams </h4>
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <td class="text-left">
+                                                Team Name
+                                            </td>
+                                            <td class=text-right>
+                                                Team Sports
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for i in managed_teams %}
+                                            <tr>
+                                                <td class="text-left">
+                                                    {% if i.logo %}
+                                                        <img src="{{i.logo.url}}" class="team_logo">
+                                                        &nbsp
+                                                    {% endif %}
+                                                    <a href="{% url 'team_view' i.id %}">
+                                                        {{ i.name }}
+                                                    </a>
+                                                </td>
+                                                <td class="text-right">
+                                                    {{ i.sport }}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>You are not managing any teams.</p>
+                            {% endif %}
+                            {% if teams %}
+                                <h4> Teams </h4>
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <td class="text-left">
+                                                Team Name
+                                            </td>
+                                            <td class="text-right">
+                                                Team Sports
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for i in teams %}
+                                        <tr>
+                                            <td class="text-left">
+                                                {% if i.logo %}
+                                                    <img src="{{i.logo.url}}" class="team_logo">
+                                                {% endif %}
+                                                &nbsp
+                                                <a href="{% url 'team_view' i.id %}">
+                                                    {{ i.name }}
+                                                </a>
+                                            </td>
+                                            <td class="text-right">
+                                                {{ i.sport }}
+                                            </td>
+                                        </tr>
+                                            {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>You have not joined any teams.</p>
+                            {% endif %}
+                                <p>
+                                    <a href="{% url 'team_builder' %}"><button class="btn blue-button">Build a Team</button></a>
+                                    <a href="{% url 'teams' %}"><button class="btn blue-button">Join a Team</button></a>
+                                </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-headingFive">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseFive" aria-expanded="false" aria-controls="flush-collapseOne">
+                        Community
+                      </button>
+                    </h2>
+                    <div id="flush-collapseFive" class="accordion-collapse collapse" aria-labelledby="flush-headingFive" data-bs-parent="#accordionFlushExample">
+                      <div class="accordion-body">
+                            {% if community %}
+                                {% for i in community %}
+                                    {{ i.name }}
+                                {% endfor %}
+                            {% else %}
+                                <p>You are not part of any community yet. </p>
+                            {% endif %}
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+        <!-- ACCORDION -->
+        {% endif %}
+    </div>
+    <script>
+        function toggleEditProfile(){
+            const profileView = document.getElementById( "profile_regular" )
+            const profileEdit = document.getElementById( "profile_edit" )
+            if( profileView.style.display === "none" ){
+                profileView.style.display = "block"
+                profileEdit.style.display = "none"
+            } 
+            else {
+                profileView.style.display = "none"
+                profileEdit.style.display = "block"
+            }
+        }
+    </script>
+{% endblock %}
